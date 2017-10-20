@@ -33,8 +33,17 @@
     "eslint-plugin-react": "^5.2.2"
   },
   "dependencies": {
+    "body-parser": "^1.18.2",
+    "connect-mongo": "^2.0.0",
+    "draft-js": "^0.10.3",
     "express": "^4.15.3",
+    "express-session": "^1.15.6",
+    "lodash": "^4.17.4",
+    "mongoose": "^4.12.3",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
     "react": "^15.6.1",
-    "react-dom": "^15.6.1"
+    "react-dom": "^15.6.1",
+    "react-router-dom": "^4.2.2"
   }
 }
