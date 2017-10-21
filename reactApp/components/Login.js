@@ -40,7 +40,8 @@ export default class Login extends React.Component{
         <br />
         <input ref={node => {passwordField=node;}} placeholder="Password" type="password" />
         <br />
-        <button onClick={() => this.login(usernameField.value,passwordField.value)}>
+        <button onClick={() => {
+          this.login(usernameField.value,passwordField.value);}}>
          Login
         </button>
         <button onClick={() => this.props.history.push('/register')}>Register</button>

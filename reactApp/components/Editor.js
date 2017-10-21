@@ -1,6 +1,5 @@
 import React from "react";
 import {Editor, EditorState, Modifier, RichUtils, convertToRaw, convertFromRaw} from 'draft-js';
-import debounce from 'lodash/debounce';
 
 export default class MyEditor extends React.Component{
   constructor(props){
@@ -13,7 +12,6 @@ export default class MyEditor extends React.Component{
     this.focus = () => this.refs.editor.focus();
     this.onChange = (editorState) => {
       const contentState = editorState.getCurrentContent();
-      console.log('in onChange', convertToRaw(contentState));
       this.saveContent(contentState);
       this.setState({editorState});
     };
@@ -22,14 +20,13 @@ export default class MyEditor extends React.Component{
     this.toggleBlockType = (type) => this._toggleBlockType(type);
   }
 
-  saveContent(content){
+  saveContent (content){
     const docId = this.props.match.params.dochash;
+
     fetch(`http://localhost:3000/content?id=${docId}`, {
       method: 'POST',
       credentials: 'include',
-      body: JSON.stringify({
-        content: convertToRaw(content)
-      }),
+      body: JSON.stringify({content: JSON.stringify(convertToRaw(content))}),
       headers: new Headers({
         'Content-Type': 'application/json'
       })
@@ -54,19 +51,16 @@ export default class MyEditor extends React.Component{
     .then(resp => resp.json())
     .then(resp => {
       if (resp.success) {
-        console.log('got to rawContent', resp.doc);
         const raw = resp.doc.content;
+        console.log('raw is', raw);
         if(raw){
-          console.log('state is', raw);
           const contentState = convertFromRaw(JSON.parse(raw));
-          console.log('contentState is', contentState);
           this.setState({
             editorState: EditorState.createWithContent(contentState),
             title: resp.doc.title
           });
 
         } else {
-          console.log('instead state is', this.state.title);
           this.setState({
             title: resp.doc.title
           });

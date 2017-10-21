@@ -3,10 +3,10 @@ import React from 'react';
 export default class Register extends React.Component{
   constructor(props){
     super(props);
-    this.state = {username: ''};
+    this.state = {error: null};
   }
 
-  register(username, password, repeat, fname, lname) {
+  register(username, password, repeat) {
     fetch('http://localhost:3000/register', {
       method: 'POST',
       credentials: 'include',
@@ -16,8 +16,7 @@ export default class Register extends React.Component{
       body: JSON.stringify({
         username,
         password,
-        fname,
-        lname
+        repeat
       })
     })
     .then(resp => resp.json())
@@ -25,7 +24,7 @@ export default class Register extends React.Component{
       if (resp.success) {
         this.props.history.push('/');
       } else {
-        this.setState({error: resp.error.errmsg});
+        this.setState({error: resp.error});
       }
     })
     .catch(err => {throw err;});
@@ -35,28 +34,21 @@ export default class Register extends React.Component{
     let usernameField;
     let passwordField;
     let repeatPasswordField;
-    let fnameField;
-    let lnameField;
     return(
         <form>
             <h2> Register </h2>
-            <input ref={node => {usernameField=node;}} placeholder="Username" type="text" />
+            <p>{this.state.error}</p>
+            <input ref={node => {usernameField=node;}} placeholder="Username" type="text" required="true" />
             <br />
-            <input ref={node => {passwordField=node;}} placeholder="Password" type="password" />
+            <input ref={node => {passwordField=node;}} placeholder="Password" type="password" required="true"/>
             <br />
-            <input ref={node => {repeatPasswordField=node;}} placeholder="Confirm Password" type="password" />
-            <br />
-            <input ref={node => {fnameField=node;}} placeholder="First Name" type="text" />
-            <br />
-            <input ref={node => {lnameField=node;}} placeholder="Last Name" type="text" />
+            <input ref={node => {repeatPasswordField=node;}} placeholder="Confirm Password" type="password" required="true"/>
             <br />
             <button
             onClick={() => this.register(
               usernameField.value,
               passwordField.value,
-              repeatPasswordField.value,
-              fnameField.value,
-              lnameField.value)}>
+              repeatPasswordField.value)}>
              Register
             </button>
             <button onClick={() => this.props.history.push('/')}>Login</button>

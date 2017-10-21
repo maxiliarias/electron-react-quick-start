@@ -70,21 +70,29 @@ passport.use(new LocalStrategy(function(username, password, done) {
 
 app.post('/register', function(req,res){
   console.log('inside register ');
-  var u = new User({
-    username: req.body.username,
-    password: req.body.password,
-    fname: req.body.fname,
-    lname: req.body.lname
-  });
-  u.save(function(err,user){
-    if(err){
-      console.log('hi error ');
-      res.json({success: false, error: err});
-    } else {
-      console.log('Hi success');
-      res.json({success: true});
-    }
-  });
+  var username = req.body.username;
+  var password = req.body.password;
+  var repeat= req.body.repeat;
+
+  if( password !== repeat){
+    console.log('inside password not match');
+    res.json({success: false, error: "Your passwords do not match."});
+  } else if( username.length <7){
+    console.log('inside username.length');
+    res.json({success: false, error: "Your username must be at least 7 characters long."});
+  } else {
+    var u = new User({
+      username: req.body.username,
+      password: req.body.password,
+    });
+    u.save(function(err,user){
+      if(err){
+        res.json({success: false, error: err});
+      } else {
+        res.json({success: true});
+      }
+    });
+  }
 });
 
 app.post('/login',passport.authenticate('local'),(req, res) => {
@@ -94,29 +102,45 @@ app.post('/login',passport.authenticate('local'),(req, res) => {
 /* END OF AUTHENTICATION ROUTES*/
 
 app.post('/newdocument',function(req,res){
-  var d = new Document({
-    author: req.user._id,
-    title: req.body.title,
-    collaborators: [req.user._id],
-    lastModified: new Date()
-  });
-  d.save(function(err,doc){
-    if(err){
-      console.log('error is', err);
+  if(req.body.title && req.body.password){
+    var d = new Document({
+      author: req.user._id,
+      title: req.body.title,
+      password: req.body.password,
+      collaborators: [req.user._id],
+    });
+    d.save(function(err,doc){
+      if(err){
+        console.log('error is', err);
+      } else {
+        User.findById(req.user._id)
+        .then(user => {
+          user.doc.push(doc._id);
+          user.save();
+        })
+        .then(function(){
+          res.json({success: true, doc: doc });
+        })
+        .catch(function(err){
+          res.json({ success: false, error: err });
+        });
+      }
+    });
+  } else {
+    res.json({success: false, error: "Need title and password"});
+  }
+});
+
+app.post('/checkpassword', function(req,res){
+  Document.findById(req.body.id)
+  .then(doc => {
+    if(doc.password === req.body.password){
+      res.json({success: true, doc: doc });
     } else {
-      User.findById(req.user._id)
-      .then(user => {
-        user.doc.push(doc._id);
-        user.save();
-      })
-      .then(function(){
-        res.json({success: true, doc: doc });
-      })
-      .catch(function(err){
-        res.json({ success: false, error: err });
-      });
+      res.json({ success: false, error: "Passwords do not match" });
     }
-  });
+  })
+  .catch(err => {throw err;});
 });
 
 app.get('/getdocuments', function(req,res){
@@ -142,22 +166,14 @@ app.get('/getdocument', function(req,res){
 });
 
 app.post('/content', function(req,res){
-  console.log('im here just beginning', req.query.id);
-  var textArray = req.body.content.blocks;
-  let  allTexts = "";
-
-  for (var i =0; i <textArray.length; i++){
-    allTexts += textArray[i].text + "\n";
-  }
-
-  console.log('testing here', allTexts, "user is", req.user._id);
-
   Document.findById(req.query.id)
   .then(doc => {
-    doc.content = allTexts;
+    doc.content = req.body.content;
     doc.save();
-    console.log('im on the server side saving');
   })
+  .then(
+    res.json({success:true})
+  )
   .catch(err => {throw err;});
 });
 
